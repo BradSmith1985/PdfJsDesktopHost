@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.30114.105
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PdfJsDesktopHost", "PdfJsDesktopHost.csproj", "{FB182C4C-1B14-49A2-81F1-3538761BE711}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestApp", "ConsoleApp\ConsoleApp\TestApp.csproj", "{6CD4A677-F791-437C-9177-C864DB88073F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestApp", "TestApp\TestApp.csproj", "{6CD4A677-F791-437C-9177-C864DB88073F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
