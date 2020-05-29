@@ -4,6 +4,9 @@ All rights reserved.
 Portions of this software are based on PDF.js (mozilla.github.io/pdf.js), a 
 work of Mozilla Labs and licensed under the Apache License 2.0.
 
+Portions of this software are based on NHttp (github.com/pvginkel/NHttp), a 
+work of Pieter van Ginkel and licensed under the LGPL 3 license.
+
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
     * Redistributions of source code must retain the above copyright
