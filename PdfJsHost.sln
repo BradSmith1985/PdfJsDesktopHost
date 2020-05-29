@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30114.105
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PdfJsDesktopHost", "PdfJsDesktopHost.csproj", "{FB182C4C-1B14-49A2-81F1-3538761BE711}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestApp", "ConsoleApp\ConsoleApp\TestApp.csproj", "{6CD4A677-F791-437C-9177-C864DB88073F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FB182C4C-1B14-49A2-81F1-3538761BE711}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FB182C4C-1B14-49A2-81F1-3538761BE711}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FB182C4C-1B14-49A2-81F1-3538761BE711}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FB182C4C-1B14-49A2-81F1-3538761BE711}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6CD4A677-F791-437C-9177-C864DB88073F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6CD4A677-F791-437C-9177-C864DB88073F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6CD4A677-F791-437C-9177-C864DB88073F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6CD4A677-F791-437C-9177-C864DB88073F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7BFD9DCE-2A8B-4D4A-BC67-669B18AB2CB3}
+	EndGlobalSection
+EndGlobal
