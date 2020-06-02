@@ -87,19 +87,40 @@ namespace PdfJsDesktopHost {
         /// <param name="path"></param>
         /// <returns></returns>
 		public string GetUrlForDocument(string path) {
+			// make sure server is running
+			EnsureStarted();
+
+            return GetUrlForObject(path);
+		}
+
+        /// <summary>
+        /// Returns a URL that can be used to preview a document, using a delegate that returns a <see cref="Stream"/>.
+        /// </summary>
+        /// <param name="action"></param>
+        /// <returns></returns>
+        /// <remarks>
+        /// The delegate is invoked each time the document is requested, and the stream is closed after each request.
+        /// </remarks>
+        public string GetUrlForDocument(Func<Stream> action) {
             // make sure server is running
             EnsureStarted();
 
-            // assign unique ID to filename
-            Guid guid = Guid.NewGuid();
-            string key = guid.ToString();
-            MemoryCache.Default.Add(key, path, new CacheItemPolicy() { SlidingExpiration = TimeSpan.FromMinutes(URL_LIFETIME_MINS) });
-
-            // construct URL from unique ID
-            return String.Format("http://localhost:{0}/web/viewer.html?file=%2Fdoc%2F{1}.pdf", _server.EndPoint.Port, key);
+            return GetUrlForObject(action);
         }
 
-        private async Task ExtractTempFilesAsync() {
+        private string GetUrlForObject(object value) {
+            // assign unique ID
+            Guid guid = Guid.NewGuid();
+			string key = guid.ToString();
+
+            // cache object
+			MemoryCache.Default.Add(key, value, new CacheItemPolicy() { SlidingExpiration = TimeSpan.FromMinutes(URL_LIFETIME_MINS) });
+
+            // construct viewer URL from unique ID
+            return String.Format("http://localhost:{0}/web/viewer.html?file=%2Fdoc%2F{1}.pdf", _server.EndPoint.Port, key);
+		}
+
+		private async Task ExtractTempFilesAsync() {
             Directory.CreateDirectory(TempDirectory);
 
             using (Stream s = typeof(Host).Assembly.GetManifestResourceStream(RESOURCE_NAME)) {
@@ -151,6 +172,7 @@ namespace PdfJsDesktopHost {
 
             bool success = false;
             string localPath = null;
+            Func<Stream> action = null;
 
             if (e.Request.Path.StartsWith("/doc/", StringComparison.OrdinalIgnoreCase)) {
                 // serve the PDF document with the specified ID
@@ -159,7 +181,8 @@ namespace PdfJsDesktopHost {
                 if (filename.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase)) {
                     string key = Path.GetFileNameWithoutExtension(filename);
                     object cached = MemoryCache.Default.Get(key);
-                    if (cached is string) localPath = (string)cached;
+                    localPath = cached as string;
+                    action = cached as Func<Stream>;
                 }
             }
             else {
@@ -200,6 +223,19 @@ namespace PdfJsDesktopHost {
                         success = true;
                     }
                 }
+            }
+            else if (action != null) {
+                // no last modified date if using stream
+                e.Response.ContentType = "application/pdf";
+                e.Response.CacheControl = String.Format("public, max-age={0}", CACHE_MAX_AGE);
+
+                if (!isHead) {
+                    using (Stream stream = action()) {
+                        stream.CopyTo(e.Response.OutputStream);
+                    }
+                }
+
+                success = true;
             }
 
             if (!success) {

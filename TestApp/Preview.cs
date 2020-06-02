@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.IO;
 
 namespace TestApp {
 
@@ -24,6 +25,7 @@ namespace TestApp {
 			if (openFileDialog.ShowDialog() == DialogResult.OK) {
 				// register the local file with the HTTP server
 				string url = host.GetUrlForDocument(openFileDialog.FileName);
+				//string url = host.GetUrlForDocument(() => File.OpenRead(openFileDialog.FileName));
 
 				// open in embedded web browser
 				webBrowser.Navigate(url);
