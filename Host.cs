@@ -245,6 +245,11 @@ namespace PdfJsDesktopHost {
             }
         }
 
+        /// <summary>
+        /// Releases the unmanaged resources used by the <see cref="Host" />
+		/// and optionally releases the managed resources.
+        /// </summary>
+        /// <param name="disposing"></param>
         protected override void Dispose(bool disposing) {
             if (disposing) {
                 // shut down server
