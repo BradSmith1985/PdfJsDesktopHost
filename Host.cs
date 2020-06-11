@@ -40,6 +40,14 @@ namespace PdfJsDesktopHost {
 
         HttpServer _server;
         Task _extractTempFilesTask;
+        readonly Regex _rangeExp = new Regex(@"\b(\d*)\-(\d*)\b");
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the 'Accept-Ranges' header is included in response headers. 
+        /// If true, requests for partial content will be served.
+        /// </summary>
+        [DefaultValue(false)]
+        public bool AcceptRanges { get; set; }
 
         /// <summary>
         /// Gets the full path to the temp directory used by the server.
@@ -195,6 +203,25 @@ namespace PdfJsDesktopHost {
                 FileInfo info = new FileInfo(localPath);
 
                 if (info.Exists) {
+                    string rangeStr = e.Request.Headers["Range"];
+                    var ranges = ParseRanges(rangeStr, info);
+
+                    if (AcceptRanges && (ranges != null)) {
+                        if (ranges.Count > 1) {
+                            // multiple byte ranges not supported (yet)
+                            ranges = null;
+                        }
+                        else if ((ranges[0].Item1 >= info.Length) || (ranges[0].Item2 >= info.Length)) {
+                            // invalid range request
+                            e.Response.StatusCode = 416;
+                            e.Response.StatusDescription = "Requested Range Not Satisfiable";
+                            e.Response.Headers["Content-Range"] = String.Format("bytes */{0}", info.Length);
+                            return;
+                        }
+                    }
+
+                    if (AcceptRanges) e.Response.Headers["Accept-Ranges"] = "bytes";
+
                     string modSince = e.Request.Headers["If-Modified-Since"];
                     DateTime lastModified;
 
@@ -216,7 +243,30 @@ namespace PdfJsDesktopHost {
 
                         if (!isHead) {
                             using (Stream src = File.Open(localPath, FileMode.Open, FileAccess.Read)) {
-                                src.CopyTo(e.Response.OutputStream);
+                                if (AcceptRanges && (ranges != null)) {
+                                    // specific ranges
+                                    e.Response.StatusCode = 206;
+                                    e.Response.StatusDescription = "Partial Content";
+
+                                    foreach (var range in ranges) {
+                                        e.Response.Headers["Content-Range"] = String.Format("bytes {0}-{1}/{2}", range.Item1, range.Item2, info.Length);
+
+                                        // read range from file
+                                        src.Seek(range.Item1, SeekOrigin.Begin);
+                                        byte[] buffer = new byte[(range.Item2 - range.Item1) + 1];
+                                        int actualBytes = 0;
+                                        while ((actualBytes += src.Read(buffer, actualBytes, buffer.Length - actualBytes)) < buffer.Length) { }
+
+                                        // write to response
+                                        e.Response.OutputStream.Write(buffer, 0, buffer.Length);
+
+                                        break;
+                                    }
+                                }
+                                else {
+                                    // entire range
+                                    src.CopyTo(e.Response.OutputStream);
+                                }
                             }
                         }
 
@@ -243,6 +293,35 @@ namespace PdfJsDesktopHost {
                 e.Response.StatusCode = 404;
                 e.Response.StatusDescription = "Not Found";
             }
+        }
+
+        private List<Tuple<int, int>> ParseRanges(string s, FileInfo info) {
+            if (String.IsNullOrWhiteSpace(s)) return null;
+
+            int ndx = s.IndexOf("=", StringComparison.OrdinalIgnoreCase);
+            if (ndx < 0) return null;
+
+            List<Tuple<int, int>> list = new List<Tuple<int, int>>();
+
+            int last = (int)(info.Length - 1);
+
+            foreach (Match m in _rangeExp.Matches(s.Substring(ndx + 1))) {
+                if (m.Groups[1].Success && m.Groups[2].Success) {
+                    // start-end
+                    list.Add(new Tuple<int, int>(Int32.Parse(m.Groups[1].Value), Int32.Parse(m.Groups[2].Value)));
+                }
+                else if (m.Groups[1].Success) {
+                    // start onwards
+                    list.Add(new Tuple<int, int>(Int32.Parse(m.Groups[1].Value), last));
+                }
+                else if (m.Groups[2].Success) {
+                    // last n bytes
+                    int n = Int32.Parse(m.Groups[2].Value);
+                    list.Add(new Tuple<int, int>(last - n, last));
+                }
+            }
+
+            return list;
         }
 
         /// <summary>
